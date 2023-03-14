@@ -1,2 +1,4 @@
 # Lista de tarefas
- Site com autenticação com firebase e lista de tarefas salva no banco de dados
+ Site criado com ReactJS + Firebase
+ 
+ Podendo fazer cadastro e login, após ter seu user pode criar sua lista de tarefas
