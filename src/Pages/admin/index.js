@@ -4,7 +4,14 @@ import { signOut } from 'firebase/auth';
 
 import {
     addDoc,
-    collection
+    collection,
+    onSnapshot,
+    query,
+    orderBy,
+    where,
+    doc,
+    deleteDoc,
+    updateDoc
 } from 'firebase/firestore'
 
 import './admin.css';
@@ -13,6 +20,8 @@ export default function Admin(){
 
     const [tarefaInput, setTarefaInput] = useState('');
     const [user, setUser]= useState({});
+    const [tarefas, setTarefa] = useState([]);
+    const [edit, setEdit] = useState({}) ;
 
     useEffect(()=>{
 
@@ -21,6 +30,31 @@ export default function Admin(){
             const userDetail = localStorage.getItem('@detailUser');
 
             setUser(JSON.parse(userDetail))
+
+            if(userDetail){
+
+                const data = JSON.parse(userDetail);
+
+                const tarefaRef = collection(db, "tarefas");
+
+                const q = query(tarefaRef, orderBy("created", 'desc'), where("userUid","==",data?.uid))
+
+                const unsub = onSnapshot(q, (snapshot)=>{
+                    let lista = [];
+
+                    snapshot.forEach((doc)=>{
+                        lista.push({
+                            id:doc.id,
+                            tarefa: doc.data().tarefa,
+                            userUid: doc.data().userUid
+                        })
+                    })
+
+                    setTarefa(lista)
+                })
+
+
+            }
 
         }
 
@@ -36,8 +70,13 @@ export default function Admin(){
             return
         }
 
+        if(edit?.id){
+            handleUpdateTarefa();
+            return;
+        }
+
         await addDoc(collection(db, "tarefas"), {
-            tarefas: tarefaInput,
+            tarefa: tarefaInput,
             created: new Date(),
             userUid: user?.uid
         })
@@ -55,27 +94,65 @@ export default function Admin(){
         await signOut(auth);
     }
 
+    async function deletaTarefa(id){
+        
+        const docRef = doc(db, "tarefas", id)
+        await deleteDoc(docRef);
+
+    }
+
+    async function editTarefa(item){
+        console.log(item)
+        setTarefaInput(item.tarefa)
+        setEdit(item);
+    }
+
+    async function handleUpdateTarefa(){
+        const docRef = doc(db, "tarefas",edit?.id)
+        await updateDoc(docRef, {
+            tarefa:tarefaInput
+        })
+        .then(()=>{
+            console.log("Tarefa atualizada");
+            setTarefaInput('');
+            setEdit({})
+        })
+        .catch(()=>{
+            console.log("Erro ao atualizar");
+            setTarefaInput('');
+            setEdit({});
+        })
+    }
+
     return(
         <div className='admin-container'>
             <h1>Minhas tarefas</h1>
 
             <form className='form' onSubmit={handleRegister}>
                 <textarea
-                    placeholder='Dgite sua tarefa...'
+                    placeholder='Digite sua tarefa...'
                     value={tarefaInput}
                     onChange={ (e)=> setTarefaInput(e.target.value) }
                 />
 
-                <button className='btn-register' type='submit'>Registrar tarefa</button>
+                {Object.keys(edit).length > 0 ? (
+                    <button className='btn-register' type='submit'>Atualizar tarefa</button>
+                ) : (
+                    <button className='btn-register' type='submit'>Registrar tarefa</button>
+                )}
             </form>
 
-            <article className='list'>
-                <p>Estudar JavaScript</p>
-                <div>
-                    <button>Editar</button>
-                    <button className='btn-delete'>Concluír</button>
-                </div>
-            </article>
+           {tarefas.map((item)=>{
+            return(
+                <article className='list' key={item.id}>
+                    <p>{item.tarefa}</p>
+                    <div>
+                        <button onClick={()=>editTarefa(item)} >Editar</button>
+                        <button onClick={()=> deletaTarefa(item.id)} className='btn-delete'>Concluír</button>
+                    </div>
+                </article>
+            )
+           })}
 
             <button className='btn-logount' onClick={handleLogount}>Sair</button>
         </div>

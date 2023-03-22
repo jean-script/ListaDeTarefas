@@ -27,6 +27,7 @@ export default function Home(){
       })
       .catch(()=>{
         console.log("Erro ao fazer o login");
+        alert("Erro no login")
       })
 
     }else {
