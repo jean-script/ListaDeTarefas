@@ -10,7 +10,7 @@ Rápida descrição do objetivo de fazer esse projeto
 
 
 <!-- Inserir imagem com a #vitrinedev ao final do link -->
-![](https://github.com/jean-script/ecommerce/blob/main/src/img/localhost_3000_.png?raw=true/1200x500.png?text=#vitrinedev)
+![](?raw=true/1200x500.png?text=add foto#vitrinedev)
 
 ## Detalhes do projeto
 
